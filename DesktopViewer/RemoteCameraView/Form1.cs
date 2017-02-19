@@ -40,10 +40,18 @@ namespace RemoteCameraView
 
         public Image byteArrayToImage(byte[] byteArrayIn)
         {
-            using (var ms = new MemoryStream(byteArrayIn))
+            try
             {
-                return Image.FromStream(ms);
+                using (var ms = new MemoryStream(byteArrayIn))
+                {
+                    return Image.FromStream(ms);
+                }
             }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            
         }
 
         private void button1_Click(object sender, EventArgs e)

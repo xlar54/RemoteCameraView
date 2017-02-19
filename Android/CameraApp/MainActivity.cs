@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace CameraApp
 {
-    [Activity(Label = "CameraApp", MainLauncher = true, Icon = "@drawable/icon")]
+    [Activity(Label = "CameraApp",  Icon = "@drawable/icon")]
     public class MainActivity : Activity
     {
         private Android.Hardware.Camera mCamera;
@@ -22,13 +22,14 @@ namespace CameraApp
             base.OnCreate(bundle);
 
             SetContentView(Resource.Layout.Main);
+
+            string ipAddress = Intent.GetStringExtra("IPAddress") ?? "192.168.100.18";
+
             mCamera = getCameraInstance();
-            mPreview = new TestCameraView(this, mCamera);
+            mPreview = new TestCameraView(this, mCamera, ipAddress);
             FrameLayout preview = (FrameLayout)FindViewById(Resource.Id.camera_preview);
             preview.AddView(mPreview);
-
-
-
+            
         }
 
         public static Android.Hardware.Camera getCameraInstance()

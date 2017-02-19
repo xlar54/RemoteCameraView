@@ -25,7 +25,7 @@ namespace CameraApp
         private int width;
         private int height;
         private static int PORT = 4680;
-        private static string IP_ADDR = "192.168.100.18";
+        private string IP_ADDR = "192.168.100.18";
         private byte[] mFrameBuffer;
         private Context con;
 
@@ -39,12 +39,14 @@ namespace CameraApp
         private int curFrame = 0;
         private int skipFrame = 3;
 
-        public TestCameraView(Context context, Android.Hardware.Camera camera) : base(context)
+        public TestCameraView(Context context, Android.Hardware.Camera camera, string ipAddress) : base(context)
         {
             mCamera = camera;
             mHolder = Holder;
             mHolder.AddCallback(this);
             mHolder.SetType(SurfaceType.PushBuffers);
+
+            IP_ADDR = ipAddress;
 
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().PermitAll().Build();
             StrictMode.SetThreadPolicy(policy);
