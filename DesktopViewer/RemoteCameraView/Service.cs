@@ -9,56 +9,35 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Collections.Generic;
 
-public class Connection
+public class Service
 {
-    TcpListener listener = new TcpListener(4680);
-    TcpClient client = null;
-    public bool isWaiting = false;
-    public bool isConnected = false;
-    private bool halt = false;
+    private TcpListener listener = new TcpListener(4680);
+    private TcpClient client = null;
+    private NetworkStream netStream = null;
+
     public Queue<byte[]> imageDataQueue = new Queue<byte[]>();
 
-    NetworkStream netStream = null;
+    public bool isConnected = false;
+    private bool isRunning = true;
 
-UdpClient udpSock = new UdpClient(4680);
-
-    public void Listen()
+    public void Start()
     {
-        Thread thread = new Thread(new ThreadStart(WaitForConnection));
+        Thread thread = new Thread(new ThreadStart(HandleConnections));
         thread.Start();
     }
 
 
     public void Terminate()
     {
-        halt = true;
+        isRunning = false;
     }
 
-    private void WaitForUdpConnection()
-    {
-        
-        IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-        byte[] data = new byte[1024];
 
-        udpSock.BeginReceive(new AsyncCallback(recv), null);
-        
-    }
-
-    private void recv(IAsyncResult res)
-    {
-        IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 4680);
-        byte[] data = udpSock.EndReceive(res, ref RemoteIpEndPoint);
-
-        imageDataQueue.Enqueue(data);
-
-        udpSock.BeginReceive(new AsyncCallback(recv), null);
-    }
-
-    private void WaitForConnection()
+    private void HandleConnections()
     {
         listener.Start();
 
-        while (!halt)
+        while (isRunning)
         {
             if (listener.Pending())
             {
@@ -66,7 +45,7 @@ UdpClient udpSock = new UdpClient(4680);
                 netStream = client.GetStream();
                 isConnected = true;
 
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[4096];
                 using (MemoryStream ms = new MemoryStream())
                 {
                     int numBytesRead;
@@ -80,14 +59,19 @@ UdpClient udpSock = new UdpClient(4680);
                 }
 
                 client.Close();
+                client = null;
+
+                Console.WriteLine(imageDataQueue.Count);
             }
         }
 
-        if (client.Connected)
+        if (client != null && client.Connected)
             client.Close();
 
         client = null;
         isConnected = false;
+
+        listener.Stop();
     }
 
     public void SendImage(System.Drawing.Bitmap data)
@@ -97,7 +81,7 @@ UdpClient udpSock = new UdpClient(4680);
 
         if (t1 && t2)
         {
-            Listen();
+            Start();
         }
 
         if (isConnected)
@@ -119,30 +103,7 @@ UdpClient udpSock = new UdpClient(4680);
         }
     }
 
-    public byte[] ReceiveData()
-    {
-        byte[] data = null;
-        bool t1 = client.Client.Poll(1, SelectMode.SelectRead);
-        bool t2 = (client.Client.Available > 0);
 
-        if (t1 && t2 && client.Connected)
-        {
-            byte[] buffer = new byte[1024];
-            using (MemoryStream ms = new MemoryStream())
-            {
-                int numBytesRead;
-                while ((numBytesRead = netStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, numBytesRead);
-                }
-                
-                data = ms.ToArray();
-            }
-        }
-
-
-        return data;
-    }
 
 
 

@@ -13,7 +13,8 @@ namespace RemoteCameraView
 {
     public partial class Form1 : Form
     {
-        private Connection connection = null;
+        private Service service = null;
+        private Timer timer = new Timer();
 
         public Form1()
         {
@@ -22,27 +23,18 @@ namespace RemoteCameraView
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            connection = new Connection();
-            connection.Listen();
-
-            Timer t = new Timer();
-            t.Interval = 10;
-            t.Tick += T_Tick;
-            t.Start();
-
-
+            timer.Interval = 10;
+            timer.Tick += T_Tick;
         }
 
         private void T_Tick(object sender, EventArgs e)
         {
-            if (connection.imageDataQueue.Count> 0)
+            if (service.imageDataQueue.Count> 0)
             {
-                byte[] arr = connection.imageDataQueue.Dequeue();
+                byte[] arr = service.imageDataQueue.Dequeue();
                 Image i = byteArrayToImage(arr);
 
                 pictureBox1.Image = i;
-
-                Console.WriteLine(System.DateTime.Now.Ticks);
             }
         }
 
@@ -56,6 +48,31 @@ namespace RemoteCameraView
 
         private void button1_Click(object sender, EventArgs e)
         {
+            pictureBox2.Image = pictureBox1.Image;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (button2.Text == "Start")
+            {
+                service = new Service();
+                service.Start();
+
+                timer.Start();
+
+                button2.Text = "Stop";
+            }
+            else
+            {
+                service.Terminate();
+                service = null;
+
+                timer.Stop();
+                
+                button2.Text = "Start";
+
+                pictureBox1.Image = null;   
+            }
             
         }
     }
