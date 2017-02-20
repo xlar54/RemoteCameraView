@@ -33,6 +33,8 @@
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
+            this.txtText = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
@@ -86,11 +88,30 @@
             this.label1.TabIndex = 4;
             this.label1.Text = "Remote IP: 0.0.0.0";
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(315, 411);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(55, 29);
+            this.button3.TabIndex = 5;
+            this.button3.Text = "Send";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // txtText
+            // 
+            this.txtText.Location = new System.Drawing.Point(31, 416);
+            this.txtText.Name = "txtText";
+            this.txtText.Size = new System.Drawing.Size(278, 20);
+            this.txtText.TabIndex = 6;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(952, 515);
+            this.Controls.Add(this.txtText);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
@@ -113,6 +134,8 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.TextBox txtText;
     }
 }
 

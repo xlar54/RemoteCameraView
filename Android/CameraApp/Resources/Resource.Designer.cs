@@ -45,7 +45,13 @@ namespace CameraApp
 		{
 			
 			// aapt resource value: 0x7f020000
-			public const int Icon = 2130837504;
+			public const int arrow = 2130837504;
+			
+			// aapt resource value: 0x7f020001
+			public const int Icon = 2130837505;
+			
+			// aapt resource value: 0x7f020002
+			public const int imagecanvas = 2130837506;
 			
 			static Drawable()
 			{
@@ -60,23 +66,29 @@ namespace CameraApp
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f050005
-			public const int btnStart = 2131034117;
+			// aapt resource value: 0x7f050007
+			public const int btnStart = 2131034119;
 			
 			// aapt resource value: 0x7f050000
 			public const int camera_preview = 2131034112;
 			
 			// aapt resource value: 0x7f050001
-			public const int linearLayout1 = 2131034113;
+			public const int frame = 2131034113;
 			
 			// aapt resource value: 0x7f050002
-			public const int textHeader = 2131034114;
+			public const int imagearea = 2131034114;
 			
 			// aapt resource value: 0x7f050003
-			public const int textView1 = 2131034115;
+			public const int linearLayout1 = 2131034115;
 			
 			// aapt resource value: 0x7f050004
-			public const int txtIPAddress = 2131034116;
+			public const int textHeader = 2131034116;
+			
+			// aapt resource value: 0x7f050005
+			public const int textView1 = 2131034117;
+			
+			// aapt resource value: 0x7f050006
+			public const int txtIPAddress = 2131034118;
 			
 			static Id()
 			{
