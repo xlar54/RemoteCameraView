@@ -1,8 +1,6 @@
 ﻿using Android.App;
-using Android.Widget;
 using Android.OS;
 using Android.Views;
-using Android.Hardware;
 using System;
 using Android.Graphics;
 using Android.Runtime;
@@ -13,6 +11,7 @@ using System.IO;
 using Java.Net;
 using Java.IO;
 using System.Threading;
+using static Android.Hardware.Camera;
 
 namespace CameraApp
 {
@@ -24,19 +23,18 @@ namespace CameraApp
         CustomImageView customImageView;
         Android.Hardware.Camera camera;
 
-        private float RectLeft, RectTop, RectRight, RectBottom;
-
         int deviceHeight, deviceWidth;
-        private int curFrame = 0;
-        private int skipFrame = 3;
         private Socket socket;
-        private string TAG = "MyActivity";
+        private string TAG = "Camera Preview";
         private static int PORT = 4680;
         private string IP_ADDR = "192.168.100.18";
 
         Queue<byte[]> queue = new Queue<byte[]>();
         Queue<string> inputQueue = new Queue<string>();
+
         static object Lock = new object();
+
+        bool isRunning = true;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -45,7 +43,8 @@ namespace CameraApp
             SetContentView(Resource.Layout.Main);
 
             camera = Android.Hardware.Camera.Open();
-            string ipAddress = Intent.GetStringExtra("IPAddress") ?? "192.168.100.18";
+
+            string ipAddress = (Intent.GetStringExtra("IPAddress") == "" ? "192.168.100.18" : Intent.GetStringExtra("IPAddress"));
 
             cameraView = (SurfaceView)FindViewById(Resource.Id.camera_preview);
             holder = cameraView.Holder;
@@ -64,7 +63,27 @@ namespace CameraApp
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().PermitAll().Build();
             StrictMode.SetThreadPolicy(policy);
 
-            ThreadPool.QueueUserWorkItem(o => SendData());
+            socket = new Socket();
+            socket.SendBufferSize = 100000;
+            socket.TcpNoDelay = true;
+
+            try
+            {
+                socket.Connect(new InetSocketAddress(IP_ADDR, PORT));
+
+                if (socket.IsConnected)
+                {
+                    ThreadPool.QueueUserWorkItem(o => SendFrames());
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Debug("Exception", e.Message);
+            }
+            
+
+            
+
         }
 
         public void SurfaceCreated(ISurfaceHolder holder)
@@ -72,21 +91,24 @@ namespace CameraApp
             try
             {
                 camera.SetPreviewDisplay(holder);
-
-                customImageView.DrawLine(0, 0, 300, 300, Color.Green, 5);
+                
 
             }
             catch (Exception e)
             {
+                Log.Debug("Exception", e.Message);
             }
         }
 
 
         public void SurfaceDestroyed(ISurfaceHolder holder)
         {
-            /*camera.SetPreviewCallback(null);
-            camera.Release();
-            camera = null;*/
+            if (isCameraInUse())
+            {
+                camera.StopPreview();
+                camera.Release();
+                camera = null;
+            }
         }
 
         public void SurfaceChanged(ISurfaceHolder holder, [GeneratedEnum] Format format, int width, int height)
@@ -97,7 +119,6 @@ namespace CameraApp
             try
             {
                 camera.StopPreview();
-
             }
             catch (Exception e)
             {
@@ -112,10 +133,6 @@ namespace CameraApp
 
                 parameters.SetPictureSize(320, 240);
                 parameters.SetPreviewSize(320, 240);
-
-                //this.width = parameters.PreviewSize.Width;
-                //this.height = parameters.PreviewSize.Height;
-
                 parameters.PreviewFormat = Android.Graphics.ImageFormatType.Nv21;// ImageFormat.Nv21;
 
                 camera.SetParameters(parameters);
@@ -125,28 +142,36 @@ namespace CameraApp
             }
             catch (Exception e)
             {
+                Log.Debug("Exception", e.Message);
             }
         }
 
         public void OnPreviewFrame(byte[] data, Android.Hardware.Camera camera)
         {
-            try
+            if (!isRunning)
             {
-                curFrame++;
-
-                if (curFrame == skipFrame)
+                if (isCameraInUse())
                 {
-                    //convert YuvImage(NV21) to JPEG Image data
-                    YuvImage yuvimage = new YuvImage(data, Android.Graphics.ImageFormatType.Nv21, deviceWidth, deviceHeight, null);
-                    MemoryStream baos = new MemoryStream();
-                    yuvimage.CompressToJpeg(new Rect(0, 0, deviceWidth, deviceHeight), 100, baos);
-                    byte[] jdata = baos.ToArray();
-
-                    queue.Enqueue(jdata);
-                    
-                    curFrame = 0;
+                    camera.Release();
+                    camera = null;
                 }
 
+                
+                this.Finish();
+            }
+                
+
+            try
+            {
+                //convert YuvImage(NV21) to JPEG Image data
+                YuvImage yuvimage = new YuvImage(data, Android.Graphics.ImageFormatType.Nv21, deviceWidth, deviceHeight, null);
+                MemoryStream baos = new MemoryStream();
+                yuvimage.CompressToJpeg(new Rect(0, 0, deviceWidth, deviceHeight), 50, baos);
+                byte[] jdata = baos.ToArray();
+
+                queue.Enqueue(jdata);
+
+                
             }
             catch (Exception e)
             {
@@ -154,25 +179,121 @@ namespace CameraApp
             }
         }
 
-        public void SendData()
+        public void SendFrames()
         {
-            while (true)
+            try
             {
-                if (queue.Count > 0)
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.InputStream));
+                PrintWriter writer = new PrintWriter(socket.OutputStream, true);
+
+                while (true)
                 {
-                    byte[] jdata = queue.Dequeue();
+                    string data = reader.ReadLine();
 
-                    socket = new Socket();
-                    socket.Connect(new InetSocketAddress(IP_ADDR, PORT));
+                    if (data == "OK")
+                    {
+                        // Continuosly send frames if they exist in the queue
+                        while (true)
+                        {
+                            if (queue.Count > 0)
+                            {
+                                writer.Print("IMG " + System.Convert.ToBase64String(queue.Dequeue()) + "\r\n");
+                                writer.Flush();
 
-                    BufferedOutputStream outStream = new BufferedOutputStream(socket.OutputStream);
-                    
-                    Log.Debug(TAG, "sending data... ");
-                    outStream.Write(jdata);
-                    outStream.Flush();
-                    outStream.Close();
+                                writer.Print("END\r\n");
+                                writer.Flush();
+                                break;
+                            }
+                        }
+                    }
+
+                    if (data.StartsWith("TEXT "))
+                    {
+                        RunOnUiThread(() =>
+                        {
+                            customImageView.DrawText(data.Substring(5), 50, 50, 72, Color.Cyan);
+                        });
+
+                    }
+
+                    if (data.StartsWith("CIRCLE "))
+                    {
+                        string dataParams = data.Substring(7);
+                        string[] dataArray = dataParams.Split(',');
+
+                        int x = Convert.ToInt32(dataArray[0]);
+                        int y = Convert.ToInt32(dataArray[1]);
+
+                        RunOnUiThread(() =>
+                        {
+                            customImageView.DrawCircle(x, y, 10, Color.Green, 5);
+                            //customImageView.DrawLine(0, 0, 200, 200, Color.Green, 5);
+                        });
+                    }
+
+
+                    if (data.Equals("FLASH"))
+                        SetFlash(true);
+
+                    if (data.Equals("NOFLASH"))
+                        SetFlash(false);
+
+                    if (data.Equals("TERMINATE"))
+                    {
+                        isRunning = false;
+                        Thread.CurrentThread.Abort();
+                    }
+
+                    if (data.Equals("CLEAR"))
+                    {
+                        RunOnUiThread(() =>
+                        {
+                            customImageView.Clear();
+                        });
+                    }
+
+
                 }
             }
+            catch (Exception e)
+            {
+                Log.Debug("Exception: ", e.Message);
+                Thread.CurrentThread.Abort();
+            }
+        }
+
+        public void SetFlash(bool flash)
+        {
+            Android.Hardware.Camera.Parameters parameters = camera.GetParameters();
+
+            if (flash)
+            {
+                parameters.FlashMode = Parameters.FlashModeTorch;
+            }
+            else
+            {
+                parameters.FlashMode = Parameters.FlashModeOff;
+            }
+
+            camera.SetParameters(parameters);
+        }
+
+        public bool isCameraInUse()
+        {
+            camera = null;
+            try
+            {
+                camera = Android.Hardware.Camera.Open();
+            }
+            catch (Exception e)
+            {
+                return true;
+            }
+            finally
+            {
+                if (camera != null) camera.Release();
+            }
+            return false;
         }
 
     }

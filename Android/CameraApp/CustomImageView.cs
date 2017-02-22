@@ -18,11 +18,8 @@ namespace CameraApp
     {
         private Bitmap bitmap;
         private Color color = Color.Black;
-        private int startX, startY, endX, endY, radius, width;
-        private string text = "";
-        bool doDrawLine = false;
-        bool doDrawCircle = false;
-        bool doDrawText = false;
+
+        public List<DrawingAction> drawingActions = new List<DrawingAction>();
 
         public CustomImageView(Context context, Android.Util.IAttributeSet attrs) : base(context, attrs)
         {
@@ -37,72 +34,92 @@ namespace CameraApp
             this.BuildDrawingCache(true);
             bitmap = this.GetDrawingCache(true);
 
-            if (doDrawLine)
+            foreach (DrawingAction da in drawingActions)
             {
-                Paint p = new Paint(PaintFlags.AntiAlias);
-                p.Color = color;
-                p.StrokeWidth = width;
-                canvas.DrawLine(startX, startY, endX, endY, p);
-                doDrawLine = false;
-            }
+                if (da.Command == DrawingActionCommands.Line)
+                {
+                    Paint p = new Paint(PaintFlags.AntiAlias);
+                    p.Color = da.color;
+                    p.StrokeWidth = da.width;
+                    canvas.DrawLine(da.startX, da.startY, da.endX, da.endY, p);
+                }
 
-            if (doDrawCircle)
-            {
-                Paint p = new Paint(PaintFlags.AntiAlias);
-                p.Color = color;
-                p.StrokeWidth = width;
-                canvas.DrawCircle(startX, startY, radius, p);
-                doDrawLine = false;
-            }
+                if (da.Command == DrawingActionCommands.Circle)
+                {
+                    Paint p = new Paint(PaintFlags.AntiAlias);
+                    p.Color = da.color;
+                    p.StrokeWidth = da.width;
+                    canvas.DrawCircle(da.startX, da.startY, da.radius, p);
+                }
 
-            if (doDrawText)
-            {
-                Paint p = new Paint(PaintFlags.AntiAlias);
-                p.Color = color;
-                p.StrokeWidth = width;
-                canvas.DrawText(text, startX, startY, p);
-                doDrawText = false;
-            }
+                if (da.Command == DrawingActionCommands.Text)
+                {
+                    Rect bounds = new Rect();
+                    Paint p = new Paint(PaintFlags.AntiAlias);
+                    float scale = Resources.DisplayMetrics.Density;
 
+                    p.Color = da.color;
+                    p.SetStyle(Paint.Style.FillAndStroke);
+                    p.StrokeWidth = da.width;
+                    p.TextSize = da.size * scale;
+                    canvas.DrawText(da.text, da.startX, da.startY, p);
+                }
+
+            }
 
             canvas.DrawBitmap(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height), new Rect(0, 0, bitmap.Width, bitmap.Height), null);
-
             base.OnDraw(canvas);
+
+        }
+
+        public void Clear()
+        {
+            drawingActions.Clear();
+            this.Invalidate();
         }
 
         public void DrawLine(int startX, int startY, int endX, int endY, Color color, int width)
         {
-            this.color = color;
-            this.startX = startX;
-            this.startY = startY;
-            this.endX = endX;
-            this.endY = endY;
-            this.width = width;
-            this.doDrawLine = true;
+            DrawingAction da = new DrawingAction();
+            da.Command = DrawingActionCommands.Line;
+            da.color = color;
+            da.startX = startX;
+            da.startY = startY;
+            da.endX = endX;
+            da.endY = endY;
+            da.width = width;
+            
+            drawingActions.Add(da);
 
             this.Invalidate();
         }
 
         public void DrawCircle(int cx, int cy, int radius, Color color, int width)
         {
-            this.color = color;
-            this.startX = cx;
-            this.startY = cy;
-            this.radius = radius;
-            this.width = width;
-            this.doDrawCircle = true;
+            DrawingAction da = new DrawingAction();
+            da.Command = DrawingActionCommands.Circle;
+            da.color = color;
+            da.startX = cx;
+            da.startY = cy;
+            da.radius = radius;
+            da.width = width;
+
+            drawingActions.Add(da);
 
             this.Invalidate();
         }
 
-        public void DrawText(string text, int x, int y, Color color, int width)
+        public void DrawText(string text, int x, int y, int size, Color color)
         {
-            this.color = color;
-            this.startX = x;
-            this.startY = y;
-            this.text = text;
-            this.width = width;
-            this.doDrawText = true;
+            DrawingAction da = new DrawingAction();
+            da.Command = DrawingActionCommands.Text;
+            da.color = color;
+            da.startX = x;
+            da.startY = y;
+            da.text = text;
+            da.size = size;
+
+            drawingActions.Add(da);
 
             this.Invalidate();
         }

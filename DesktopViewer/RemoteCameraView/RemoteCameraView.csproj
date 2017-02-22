@@ -33,6 +33,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>C:\Users\scott_8ljng9p\Desktop\New folder (2)\Net40\Release\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.Common">
+      <HintPath>C:\Users\scott_8ljng9p\Desktop\New folder (2)\Net40\Release\SuperSocket.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.SocketBase">
+      <HintPath>C:\Users\scott_8ljng9p\Desktop\New folder (2)\Net40\Release\SuperSocket.SocketBase.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.SocketEngine">
+      <HintPath>C:\Users\scott_8ljng9p\Desktop\New folder (2)\Net40\Release\SuperSocket.SocketEngine.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

@@ -23,14 +23,16 @@ namespace CameraApp
 
             SetContentView(Resource.Layout.Settings);
 
+            this.Title = "RemoteView Settings";
+          
             Button btnStart = FindViewById<Button>(Resource.Id.btnStart);
 
             btnStart.Click += delegate {
 
                 var ipAddress = FindViewById<EditText>(Resource.Id.txtIPAddress).Text;
-                var activity2 = new Intent(this, typeof(MainActivity));
-                activity2.PutExtra("IPAddress", ipAddress);
-                StartActivity(typeof(MainActivity));
+                var mainActivity = new Intent(this, typeof(MainActivity));
+                mainActivity.PutExtra("IPAddress", ipAddress);
+                StartActivity(mainActivity);
             };
         }
 
