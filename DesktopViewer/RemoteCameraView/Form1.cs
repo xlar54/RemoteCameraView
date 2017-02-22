@@ -14,6 +14,7 @@ using SuperSocket.SocketBase;
 using SuperSocket.SocketEngine;
 using SuperSocket.SocketBase.Protocol;
 using SuperSocket.SocketBase.Config;
+using System.Net;
 
 namespace RemoteCameraView
 {
@@ -25,7 +26,7 @@ namespace RemoteCameraView
         private Queue<byte[]> imageDataQueue = new Queue<byte[]>();
         private AppServer server = new AppServer();
         AppSession sendSession = null;
-        
+
         public Form1()
         {
             InitializeComponent();
@@ -40,11 +41,21 @@ namespace RemoteCameraView
 
             timer.Interval = 10;
             timer.Tick += T_Tick;
+
+            // Transparent background...  
+            pictureBoxOverlay.BackColor = Color.Transparent;
+
+            // Change parent for overlay PictureBox...
+            pictureBoxOverlay.Parent = pictureBox1;
+
+            // Change overlay PictureBox position in new parent...
+            pictureBoxOverlay.Location = new Point(0, 0);
+
+            ClearPictureBox(pictureBoxOverlay);
         }
 
 
         string dataBody = "";
-        int frame = 0;
 
         private void appServer_NewRequestReceived(AppSession session, StringRequestInfo requestInfo)
         {
@@ -64,10 +75,6 @@ namespace RemoteCameraView
                         { 
                             byte[] bdata = Convert.FromBase64String(dataBody);
                             imageDataQueue.Enqueue(bdata);
-
-                            //Image i = byteArrayToImage(bdata);
-                            //pictureBox1.Image = i;
-
                             session.Send("OK");
                         }
                         catch (Exception ex)
@@ -95,6 +102,13 @@ namespace RemoteCameraView
             session.SocketSession.Client.ReceiveTimeout = 60000;
             session.SocketSession.Client.ReceiveBufferSize = 100000;
             session.Send("OK");
+
+            IPEndPoint remoteIpEndPoint = session.SocketSession.RemoteEndPoint;
+            this.Invoke((MethodInvoker)delegate {
+                
+                label1.Text = "Remote IP: " + remoteIpEndPoint.Address;
+            });
+            
 
             sendSession = session;
         }
@@ -139,6 +153,8 @@ namespace RemoteCameraView
                 timer.Start();
 
                 button2.Text = "Stop";
+                ClearPictureBox(pictureBoxOverlay);
+
 
             }
             else
@@ -149,8 +165,7 @@ namespace RemoteCameraView
                 timer.Stop();
 
                 button2.Text = "Start";
-
-                pictureBox1.Image = null;
+                ClearPictureBox(pictureBoxOverlay);
             }
 
         }
@@ -171,51 +186,54 @@ namespace RemoteCameraView
 
         private Point? _Previous = null;
 
-        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        private void button4_Click(object sender, EventArgs e)
         {
-            _Previous = e.Location;
-            pictureBox1_MouseMove(sender, e);
-
-            
+            sendSession.Send("CLEAR");
+            ClearPictureBox(pictureBoxOverlay);
         }
 
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        private void pictureBoxOverlay_Click(object sender, EventArgs e)
         {
-            
+
+        }
+
+        private void pictureBoxOverlay_MouseDown(object sender, MouseEventArgs e)
+        {
+            _Previous = e.Location;
+            pictureBoxOverlay_MouseMove(sender, e);
+        }
+
+        private void pictureBoxOverlay_MouseMove(object sender, MouseEventArgs e)
+        {
             if (_Previous != null)
             {
-                if (pictureBox1.Image == null)
+                if (pictureBoxOverlay.Image == null)
                 {
-                    Bitmap bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-                    using (Graphics g = Graphics.FromImage(bmp))
-                    {
-                        g.Clear(Color.White);
-                    }
-                    pictureBox1.Image = bmp;
+                    ClearPictureBox(pictureBoxOverlay);
                 }
-                using (Graphics g = Graphics.FromImage(pictureBox1.Image))
+                using (Graphics g = Graphics.FromImage(pictureBoxOverlay.Image))
                 {
                     g.DrawLine(Pens.Black, _Previous.Value, e.Location);
                     sendSession.Send("CIRCLE " + e.Location.X + "," + e.Location.Y);
                 }
-                pictureBox1.Invalidate();
+                pictureBoxOverlay.Invalidate();
                 _Previous = e.Location;
             }
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
+        void ClearPictureBox(PictureBox picturebox)
         {
-
+            Bitmap bmp = new Bitmap(picturebox.Width, picturebox.Height);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+            }
+            pictureBoxOverlay.Image = bmp;
         }
 
-        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        private void pictureBoxOverlay_MouseUp(object sender, MouseEventArgs e)
         {
             _Previous = null;
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            sendSession.Send("CLEAR");
         }
     }
 }

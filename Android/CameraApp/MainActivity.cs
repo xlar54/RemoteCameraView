@@ -80,10 +80,6 @@ namespace CameraApp
             {
                 Log.Debug("Exception", e.Message);
             }
-            
-
-            
-
         }
 
         public void SurfaceCreated(ISurfaceHolder holder)
@@ -99,7 +95,6 @@ namespace CameraApp
                 Log.Debug("Exception", e.Message);
             }
         }
-
 
         public void SurfaceDestroyed(ISurfaceHolder holder)
         {
