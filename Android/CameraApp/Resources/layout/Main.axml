@@ -4,9 +4,6 @@
     android:layout_height="fill_parent"
     android:layout_gravity="left|top"
     android:id="@+id/frame">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
         <SurfaceView
             android:layout_alignParentTop="true"
             android:id="@+id/camera_preview"
@@ -14,11 +11,16 @@
             android:layout_height="match_parent" />
         <CameraApp.CustomImageView
             android:scaleType="fitXY"
-            android:layout_centerInParent="true"
+            android:layout_alignParentTop="true"
             android:clickable="true"
             android:src="@drawable/imagecanvas"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:id="@+id/imagearea" />
-    </RelativeLayout>
+        <Button
+            android:text="Exit"
+            android:layout_gravity="bottom|right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnExit" />
 </FrameLayout>

@@ -12,7 +12,7 @@ using Android.Widget;
 
 namespace CameraApp
 {
-    [Activity(Label = "SettingsActivity", MainLauncher = true)]
+    [Activity(Label = "RemoteView", MainLauncher = true)]
     public class SettingsActivity : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)

@@ -12,64 +12,77 @@ using Java.Net;
 using Java.IO;
 using System.Threading;
 using static Android.Hardware.Camera;
+using Android.Widget;
 
 namespace CameraApp
 {
     [Activity(Label = "CameraApp",  Icon = "@drawable/icon")]
     public class MainActivity : Activity, Android.Hardware.Camera.IPreviewCallback, Android.Views.ISurfaceHolderCallback
     {
+        Android.Hardware.Camera camera;
         SurfaceView cameraView;
         ISurfaceHolder holder;
         CustomImageView customImageView;
-        Android.Hardware.Camera camera;
+        Queue<byte[]> frameQueue = new Queue<byte[]>();
+        Queue<string> inputQueue = new Queue<string>();
 
         int deviceHeight, deviceWidth;
         private Socket socket;
-        private string TAG = "Camera Preview";
+        private string TAG = "Remote View";
         private static int PORT = 4680;
-        private string IP_ADDR = "192.168.100.18";
-
-        Queue<byte[]> queue = new Queue<byte[]>();
-        Queue<string> inputQueue = new Queue<string>();
-
-        static object Lock = new object();
-
-        bool isRunning = true;
+        private string IP_ADDR = "";
+        private bool isRunning = true;
 
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
 
             SetContentView(Resource.Layout.Main);
+            ActionBar.Hide();
 
+            IP_ADDR = (Intent.GetStringExtra("IPAddress") == "" ? "192.168.100.7" : Intent.GetStringExtra("IPAddress"));
+            deviceWidth = 320; // Resources.DisplayMetrics.WidthPixels;
+            deviceHeight = 240; // Resources.DisplayMetrics.HeightPixels;
+
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().PermitAll().Build();
+            StrictMode.SetThreadPolicy(policy);
+
+            InitializeCameraView();
+            InitializeControls();
+            InitializeSocket();
+
+        }
+
+        private void InitializeCameraView()
+        {
             camera = Android.Hardware.Camera.Open();
-
-            string ipAddress = (Intent.GetStringExtra("IPAddress") == "" ? "192.168.100.18" : Intent.GetStringExtra("IPAddress"));
-
             cameraView = (SurfaceView)FindViewById(Resource.Id.camera_preview);
             holder = cameraView.Holder;
             holder.SetType(SurfaceType.PushBuffers);
             holder.AddCallback((Android.Views.ISurfaceHolderCallback)this);
             //cameraView.SetSecure(true);
+        }
 
+        private void InitializeControls()
+        {
             customImageView = (CustomImageView)FindViewById(Resource.Id.imagearea);
 
-            //getting the device heigth and width
-            deviceWidth = 320; // Resources.DisplayMetrics.WidthPixels;
-            deviceHeight = 240; // Resources.DisplayMetrics.HeightPixels;
+            Button btnExit = (Button)FindViewById(Resource.Id.btnExit);
+            btnExit.Background.SetColorFilter(Color.Green, PorterDuff.Mode.Multiply);
+            btnExit.Click += delegate {
+                EndSession("Remote Session Ended");
+            };
+        }
 
-            IP_ADDR = ipAddress;
-
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().PermitAll().Build();
-            StrictMode.SetThreadPolicy(policy);
-
+        private void InitializeSocket()
+        {
             socket = new Socket();
             socket.SendBufferSize = 100000;
             socket.TcpNoDelay = true;
 
             try
             {
-                socket.Connect(new InetSocketAddress(IP_ADDR, PORT));
+                socket.Connect(new InetSocketAddress(IP_ADDR, PORT), 5000);
 
                 if (socket.IsConnected)
                 {
@@ -79,6 +92,7 @@ namespace CameraApp
             catch (Exception e)
             {
                 Log.Debug("Exception", e.Message);
+                EndSession(e.Message);
             }
         }
 
@@ -87,8 +101,6 @@ namespace CameraApp
             try
             {
                 camera.SetPreviewDisplay(holder);
-                
-
             }
             catch (Exception e)
             {
@@ -144,18 +156,8 @@ namespace CameraApp
         public void OnPreviewFrame(byte[] data, Android.Hardware.Camera camera)
         {
             if (!isRunning)
-            {
-                if (isCameraInUse())
-                {
-                    camera.Release();
-                    camera = null;
-                }
-
+                EndSession("Remote session ended");
                 
-                this.Finish();
-            }
-                
-
             try
             {
                 //convert YuvImage(NV21) to JPEG Image data
@@ -164,9 +166,8 @@ namespace CameraApp
                 yuvimage.CompressToJpeg(new Rect(0, 0, deviceWidth, deviceHeight), 50, baos);
                 byte[] jdata = baos.ToArray();
 
-                queue.Enqueue(jdata);
+                frameQueue.Enqueue(jdata);
 
-                
             }
             catch (Exception e)
             {
@@ -190,7 +191,7 @@ namespace CameraApp
                         // Continuosly send frames if they exist in the queue
                         while (true)
                         {
-                            if (queue.Count > 0)
+                            if (frameQueue.Count > 0)
                             {
                                 writer.Print("IMG " + System.Convert.ToBase64String(queue.Dequeue()) + "\r\n");
                                 writer.Flush();
@@ -253,6 +254,7 @@ namespace CameraApp
             catch (Exception e)
             {
                 Log.Debug("Exception: ", e.Message);
+                isRunning = false;
                 Thread.CurrentThread.Abort();
             }
         }
@@ -291,6 +293,19 @@ namespace CameraApp
             return false;
         }
 
+        public void EndSession(string message)
+        {
+            if (isCameraInUse())
+            {
+                camera.Release();
+                camera = null;
+            }
+
+            if (message != "")
+                Toast.MakeText(this, message, ToastLength.Long).Show();
+
+            this.Finish();
+        }
     }
 }
 

@@ -165,6 +165,7 @@ namespace RemoteCameraView
                 timer.Stop();
 
                 button2.Text = "Start";
+                pictureBox1.Image = null;
                 ClearPictureBox(pictureBoxOverlay);
             }
 
@@ -213,7 +214,7 @@ namespace RemoteCameraView
                 }
                 using (Graphics g = Graphics.FromImage(pictureBoxOverlay.Image))
                 {
-                    g.DrawLine(Pens.Black, _Previous.Value, e.Location);
+                    g.DrawLine(Pens.Green, _Previous.Value, e.Location);
                     sendSession.Send("CIRCLE " + e.Location.X + "," + e.Location.Y);
                 }
                 pictureBoxOverlay.Invalidate();
