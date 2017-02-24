@@ -50,7 +50,7 @@
             this.pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pictureBox1.Location = new System.Drawing.Point(27, 43);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(417, 362);
+            this.pictureBox1.Size = new System.Drawing.Size(640, 480);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
@@ -58,16 +58,16 @@
             // pictureBox2
             // 
             this.pictureBox2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.pictureBox2.Location = new System.Drawing.Point(505, 43);
+            this.pictureBox2.Location = new System.Drawing.Point(719, 43);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(414, 362);
+            this.pictureBox2.Size = new System.Drawing.Size(320, 240);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 1;
             this.pictureBox2.TabStop = false;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(451, 215);
+            this.button1.Location = new System.Drawing.Point(673, 140);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(40, 24);
             this.button1.TabIndex = 2;
@@ -96,7 +96,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(389, 406);
+            this.button3.Location = new System.Drawing.Point(385, 530);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(55, 29);
             this.button3.TabIndex = 5;
@@ -106,7 +106,7 @@
             // 
             // txtText
             // 
-            this.txtText.Location = new System.Drawing.Point(69, 411);
+            this.txtText.Location = new System.Drawing.Point(65, 535);
             this.txtText.Name = "txtText";
             this.txtText.Size = new System.Drawing.Size(314, 20);
             this.txtText.TabIndex = 6;
@@ -114,7 +114,7 @@
             // chkFlash
             // 
             this.chkFlash.AutoSize = true;
-            this.chkFlash.Location = new System.Drawing.Point(31, 448);
+            this.chkFlash.Location = new System.Drawing.Point(530, 537);
             this.chkFlash.Name = "chkFlash";
             this.chkFlash.Size = new System.Drawing.Size(51, 17);
             this.chkFlash.TabIndex = 7;
@@ -124,9 +124,9 @@
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(30, 481);
+            this.button4.Location = new System.Drawing.Point(446, 529);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(80, 23);
+            this.button4.Size = new System.Drawing.Size(60, 29);
             this.button4.TabIndex = 8;
             this.button4.Text = "Clear";
             this.button4.UseVisualStyleBackColor = true;
@@ -135,7 +135,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(28, 414);
+            this.label2.Location = new System.Drawing.Point(24, 538);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(35, 13);
             this.label2.TabIndex = 9;
@@ -148,7 +148,7 @@
             this.pictureBoxOverlay.InitialImage = null;
             this.pictureBoxOverlay.Location = new System.Drawing.Point(27, 43);
             this.pictureBoxOverlay.Name = "pictureBoxOverlay";
-            this.pictureBoxOverlay.Size = new System.Drawing.Size(417, 362);
+            this.pictureBoxOverlay.Size = new System.Drawing.Size(640, 480);
             this.pictureBoxOverlay.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBoxOverlay.TabIndex = 10;
             this.pictureBoxOverlay.TabStop = false;
@@ -161,7 +161,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(952, 515);
+            this.ClientSize = new System.Drawing.Size(1057, 573);
             this.Controls.Add(this.pictureBoxOverlay);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.button4);

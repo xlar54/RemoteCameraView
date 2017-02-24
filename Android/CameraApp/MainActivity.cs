@@ -32,6 +32,7 @@ namespace CameraApp
         private static int PORT = 4680;
         private string IP_ADDR = "";
         private bool isRunning = true;
+        private int scaleX, scaleY;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -135,11 +136,34 @@ namespace CameraApp
 
             try
             {
+                //FrameLayout layout = (FrameLayout)FindViewById(Resource.Id.frame);
+                //ViewGroup.LayoutParams parms = layout.LayoutParameters;
+                //parms.Height = 960;
+                //parms.Width = 1280;
+
+                //parms.Height = 1440;
+                //parms.Width = 1920;
+                //layout.LayoutParameters = parms;
+
+                Display display = WindowManager.DefaultDisplay;
+                Point size = new Point();
+                display.GetSize(size);
+                int displayWidth = size.X;
+                int displayHeight = size.Y;
+
+
+                // resolution of desktop viewer is 640x480
+                scaleX = Convert.ToInt32(displayWidth / 640);
+                scaleY = Convert.ToInt32(displayHeight / 480);
+
                 //Configration Camera Parameter(full-size)
                 Android.Hardware.Camera.Parameters parameters = camera.GetParameters();
+                Android.Hardware.Camera.Size bestPreviewSize = GetBestPreviewSize(width, height, parameters);
 
                 parameters.SetPictureSize(320, 240);
+                //parameters.SetPreviewSize(bestPreviewSize.Width, bestPreviewSize.Height);
                 parameters.SetPreviewSize(320, 240);
+
                 parameters.PreviewFormat = Android.Graphics.ImageFormatType.Nv21;// ImageFormat.Nv21;
 
                 camera.SetParameters(parameters);
@@ -162,9 +186,9 @@ namespace CameraApp
             {
                 //convert YuvImage(NV21) to JPEG Image data
                 YuvImage yuvimage = new YuvImage(data, Android.Graphics.ImageFormatType.Nv21, deviceWidth, deviceHeight, null);
-                MemoryStream baos = new MemoryStream();
-                yuvimage.CompressToJpeg(new Rect(0, 0, deviceWidth, deviceHeight), 50, baos);
-                byte[] jdata = baos.ToArray();
+                MemoryStream memStream = new MemoryStream();
+                yuvimage.CompressToJpeg(new Rect(0, 0, deviceWidth, deviceHeight), 50, memStream);
+                byte[] jdata = memStream.ToArray();
 
                 frameQueue.Enqueue(jdata);
 
@@ -173,6 +197,25 @@ namespace CameraApp
             {
                 Log.Debug(TAG, "Error getting preview frame: " + e.Message);
             }
+        }
+
+        private Android.Hardware.Camera.Size GetBestPreviewSize(int width, int height, Android.Hardware.Camera.Parameters parameters)
+        {
+            Android.Hardware.Camera.Size bestSize = null;
+            IList<Android.Hardware.Camera.Size> sizeList = parameters.SupportedPreviewSizes;
+
+            bestSize = sizeList[0];
+
+            for (int i = 1; i < sizeList.Count; i++)
+            {
+                if ((sizeList[i].Width * sizeList[i].Height) >
+                  (bestSize.Width * bestSize.Height))
+                {
+                    bestSize = sizeList[i];
+                }
+            }
+
+            return bestSize;
         }
 
         public void SendFrames()
@@ -193,7 +236,7 @@ namespace CameraApp
                         {
                             if (frameQueue.Count > 0)
                             {
-                                writer.Print("IMG " + System.Convert.ToBase64String(queue.Dequeue()) + "\r\n");
+                                writer.Print("IMG " + System.Convert.ToBase64String(frameQueue.Dequeue()) + "\r\n");
                                 writer.Flush();
 
                                 writer.Print("END\r\n");
@@ -207,7 +250,7 @@ namespace CameraApp
                     {
                         RunOnUiThread(() =>
                         {
-                            customImageView.DrawText(data.Substring(5), 50, 50, 72, Color.Cyan);
+                            customImageView.DrawText(data.Substring(5), 0, 200, 48, Color.Cyan);
                         });
 
                     }
@@ -217,13 +260,28 @@ namespace CameraApp
                         string dataParams = data.Substring(7);
                         string[] dataArray = dataParams.Split(',');
 
-                        int x = Convert.ToInt32(dataArray[0]);
-                        int y = Convert.ToInt32(dataArray[1]);
+                        int x = Convert.ToInt32(dataArray[0]) * scaleY;
+                        int y = Convert.ToInt32(dataArray[1]) * scaleY;
 
                         RunOnUiThread(() =>
                         {
                             customImageView.DrawCircle(x, y, 10, Color.Green, 5);
-                            //customImageView.DrawLine(0, 0, 200, 200, Color.Green, 5);
+                        });
+                    }
+
+                    if (data.StartsWith("LINE "))
+                    {
+                        string dataParams = data.Substring(5);
+                        string[] dataArray = dataParams.Split(',');
+
+                        int startx = Convert.ToInt32(dataArray[0]) * scaleX;
+                        int starty = Convert.ToInt32(dataArray[1]) * scaleY;
+                        int endx = Convert.ToInt32(dataArray[2]) * scaleX;
+                        int endy = Convert.ToInt32(dataArray[3]) * scaleY;
+
+                        RunOnUiThread(() =>
+                        {
+                            customImageView.DrawLine(startx, starty, endx, endy, Color.Green, 5);
                         });
                     }
 

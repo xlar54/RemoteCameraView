@@ -215,7 +215,7 @@ namespace RemoteCameraView
                 using (Graphics g = Graphics.FromImage(pictureBoxOverlay.Image))
                 {
                     g.DrawLine(Pens.Green, _Previous.Value, e.Location);
-                    sendSession.Send("CIRCLE " + e.Location.X + "," + e.Location.Y);
+                    sendSession.Send("LINE " + _Previous.Value.X + "," + _Previous.Value.Y + "," + e.Location.X + "," + e.Location.Y);
                 }
                 pictureBoxOverlay.Invalidate();
                 _Previous = e.Location;

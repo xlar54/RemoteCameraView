@@ -4,23 +4,23 @@
     android:layout_height="fill_parent"
     android:layout_gravity="left|top"
     android:id="@+id/frame">
-        <SurfaceView
-            android:layout_alignParentTop="true"
-            android:id="@+id/camera_preview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-        <CameraApp.CustomImageView
-            android:scaleType="fitXY"
-            android:layout_alignParentTop="true"
-            android:clickable="true"
-            android:src="@drawable/imagecanvas"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:id="@+id/imagearea" />
-        <Button
-            android:text="Exit"
-            android:layout_gravity="bottom|right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btnExit" />
+    <SurfaceView
+        android:layout_alignParentTop="true"
+        android:id="@+id/camera_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <CameraApp.CustomImageView
+        android:scaleType="fitXY"
+        android:layout_alignParentTop="true"
+        android:clickable="true"
+        android:src="@drawable/imagecanvas"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:id="@+id/imagearea" />
+    <Button
+        android:text="Exit"
+        android:layout_gravity="bottom|right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnExit" />
 </FrameLayout>
