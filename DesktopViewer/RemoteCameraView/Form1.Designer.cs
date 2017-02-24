@@ -40,6 +40,9 @@
             this.button4 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBoxOverlay = new System.Windows.Forms.PictureBox();
+            this.button5 = new System.Windows.Forms.Button();
+            this.txtBarcodeValue = new System.Windows.Forms.TextBox();
+            this.txtBarcodeData = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOverlay)).BeginInit();
@@ -158,11 +161,39 @@
             this.pictureBoxOverlay.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseMove);
             this.pictureBoxOverlay.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseUp);
             // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(824, 289);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(123, 28);
+            this.button5.TabIndex = 11;
+            this.button5.Text = "Recognize Barcode";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // txtBarcodeValue
+            // 
+            this.txtBarcodeValue.Location = new System.Drawing.Point(719, 326);
+            this.txtBarcodeValue.Name = "txtBarcodeValue";
+            this.txtBarcodeValue.Size = new System.Drawing.Size(320, 20);
+            this.txtBarcodeValue.TabIndex = 12;
+            // 
+            // txtBarcodeData
+            // 
+            this.txtBarcodeData.Location = new System.Drawing.Point(719, 365);
+            this.txtBarcodeData.Multiline = true;
+            this.txtBarcodeData.Name = "txtBarcodeData";
+            this.txtBarcodeData.Size = new System.Drawing.Size(320, 157);
+            this.txtBarcodeData.TabIndex = 13;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1057, 573);
+            this.Controls.Add(this.txtBarcodeData);
+            this.Controls.Add(this.txtBarcodeValue);
+            this.Controls.Add(this.button5);
             this.Controls.Add(this.pictureBoxOverlay);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.button4);
@@ -200,6 +231,9 @@
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pictureBoxOverlay;
+        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.TextBox txtBarcodeValue;
+        private System.Windows.Forms.TextBox txtBarcodeData;
     }
 }
 

@@ -15,6 +15,7 @@ using SuperSocket.SocketEngine;
 using SuperSocket.SocketBase.Protocol;
 using SuperSocket.SocketBase.Config;
 using System.Net;
+using Newtonsoft.Json;
 
 namespace RemoteCameraView
 {
@@ -246,6 +247,53 @@ namespace RemoteCameraView
         private void pictureBoxOverlay_MouseEnter(object sender, EventArgs e)
         {
             
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            txtBarcodeValue.Text = Spire.Barcode.BarcodeScanner.ScanOne((Bitmap)pictureBox2.Image);
+
+            string json = GET("http://api.upcdatabase.org/json/52c04adc61d47db0c6a13be67231cfad/" + txtBarcodeValue.Text);
+            UpcDatabaseResponse r = JsonConvert.DeserializeObject<UpcDatabaseResponse>(json);
+
+            if (r.valid == "true")
+            {
+                txtBarcodeData.Text = "Item: " + r.itemname + Environment.NewLine;
+                txtBarcodeData.Text += "Alias: " + r.alias + Environment.NewLine;
+                txtBarcodeData.Text += "Description: " + r.description + Environment.NewLine;
+                txtBarcodeData.Text += "Avg Price: " + r.avg_price + Environment.NewLine;
+            }
+            else
+            {
+                txtBarcodeData.Text = "Item not located in database. Got to www.upcdatabase.org to add it.";
+            }
+            
+
+        }
+
+        string GET(string url)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            try
+            {
+                WebResponse response = request.GetResponse();
+                using (Stream responseStream = response.GetResponseStream())
+                {
+                    StreamReader reader = new StreamReader(responseStream, Encoding.UTF8);
+                    return reader.ReadToEnd();
+                }
+            }
+            catch (WebException ex)
+            {
+                WebResponse errorResponse = ex.Response;
+                using (Stream responseStream = errorResponse.GetResponseStream())
+                {
+                    StreamReader reader = new StreamReader(responseStream, Encoding.GetEncoding("utf-8"));
+                    String errorText = reader.ReadToEnd();
+                    // log errorText
+                }
+                throw;
+            }
         }
     }
 }
