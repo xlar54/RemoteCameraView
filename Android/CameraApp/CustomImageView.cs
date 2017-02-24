@@ -18,11 +18,16 @@ namespace CameraApp
     {
         private Bitmap bitmap;
         private Color color = Color.Black;
+        private Bitmap arrow;
 
+        public int mouseX = -1;
+        public int mouseY = -1;
         public List<DrawingAction> drawingActions = new List<DrawingAction>();
 
         public CustomImageView(Context context, Android.Util.IAttributeSet attrs) : base(context, attrs)
         {
+            arrow = BitmapFactory.DecodeResource(Resources, Resource.Drawable.arrow);
+
             SetWillNotDraw(false);
 
             this.BuildDrawingCache(true);
@@ -34,19 +39,25 @@ namespace CameraApp
             this.BuildDrawingCache(true);
             bitmap = this.GetDrawingCache(true);
 
+            int lastX = 0;
+            int lastY = 0;
+
+            Paint p = new Paint(PaintFlags.AntiAlias);
+
             foreach (DrawingAction da in drawingActions)
             {
                 if (da.Command == DrawingActionCommands.Line)
                 {
-                    Paint p = new Paint(PaintFlags.AntiAlias);
                     p.Color = da.color;
                     p.StrokeWidth = da.width;
                     canvas.DrawLine(da.startX, da.startY, da.endX, da.endY, p);
+
+                    lastX = da.endX;
+                    lastY = da.endY;
                 }
 
                 if (da.Command == DrawingActionCommands.Circle)
                 {
-                    Paint p = new Paint(PaintFlags.AntiAlias);
                     p.Color = da.color;
                     p.StrokeWidth = da.width;
                     canvas.DrawCircle(da.startX, da.startY, da.radius, p);
@@ -55,7 +66,6 @@ namespace CameraApp
                 if (da.Command == DrawingActionCommands.Text)
                 {
                     Rect bounds = new Rect();
-                    Paint p = new Paint(PaintFlags.AntiAlias);
                     float scale = Resources.DisplayMetrics.Density;
 
                     p.Color = da.color;
@@ -66,6 +76,9 @@ namespace CameraApp
                 }
 
             }
+
+            if(mouseX != -1 && mouseY != -1)
+                canvas.DrawBitmap(arrow, mouseX, mouseY, p);
 
             canvas.DrawBitmap(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height), new Rect(0, 0, bitmap.Width, bitmap.Height), null);
             base.OnDraw(canvas);

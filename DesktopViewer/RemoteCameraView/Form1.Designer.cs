@@ -154,6 +154,7 @@
             this.pictureBoxOverlay.TabStop = false;
             this.pictureBoxOverlay.Click += new System.EventHandler(this.pictureBoxOverlay_Click);
             this.pictureBoxOverlay.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseDown);
+            this.pictureBoxOverlay.MouseEnter += new System.EventHandler(this.pictureBoxOverlay_MouseEnter);
             this.pictureBoxOverlay.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseMove);
             this.pictureBoxOverlay.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseUp);
             // 

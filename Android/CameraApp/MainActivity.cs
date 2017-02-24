@@ -165,6 +165,8 @@ namespace CameraApp
                 parameters.SetPreviewSize(320, 240);
 
                 parameters.PreviewFormat = Android.Graphics.ImageFormatType.Nv21;// ImageFormat.Nv21;
+                parameters.FocusMode = Android.Hardware.Camera.Parameters.FocusModeContinuousPicture;
+
 
                 camera.SetParameters(parameters);
                 camera.SetPreviewDisplay(holder);
@@ -281,7 +283,23 @@ namespace CameraApp
 
                         RunOnUiThread(() =>
                         {
-                            customImageView.DrawLine(startx, starty, endx, endy, Color.Green, 5);
+                            customImageView.DrawLine(startx, starty, endx, endy, Color.Green, 10);
+                        });
+                    }
+
+                    if (data.StartsWith("MOUSE "))
+                    {
+                        string dataParams = data.Substring(6);
+                        string[] dataArray = dataParams.Split(',');
+
+                        int startx = Convert.ToInt32(dataArray[0]) * scaleX;
+                        int starty = Convert.ToInt32(dataArray[1]) * scaleY;
+
+                        RunOnUiThread(() =>
+                        {
+                            customImageView.mouseX = startx;
+                            customImageView.mouseY = starty;
+                            customImageView.Invalidate();
                         });
                     }
 

@@ -220,6 +220,12 @@ namespace RemoteCameraView
                 pictureBoxOverlay.Invalidate();
                 _Previous = e.Location;
             }
+
+            if (server.SessionCount > 0)
+            {
+                sendSession.Send("MOUSE " + e.Location.X + "," + e.Location.Y);
+            }
+            
         }
 
         void ClearPictureBox(PictureBox picturebox)
@@ -235,6 +241,11 @@ namespace RemoteCameraView
         private void pictureBoxOverlay_MouseUp(object sender, MouseEventArgs e)
         {
             _Previous = null;
+        }
+
+        private void pictureBoxOverlay_MouseEnter(object sender, EventArgs e)
+        {
+            
         }
     }
 }
