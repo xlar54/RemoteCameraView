@@ -41,7 +41,7 @@ namespace CameraApp
             SetContentView(Resource.Layout.Main);
             ActionBar.Hide();
 
-            IP_ADDR = (Intent.GetStringExtra("IPAddress") == "" ? "192.168.100.7" : Intent.GetStringExtra("IPAddress"));
+            IP_ADDR = (Intent.GetStringExtra("IPAddress") == "" ? "192.168.100.8" : Intent.GetStringExtra("IPAddress"));
             deviceWidth = 320; // Resources.DisplayMetrics.WidthPixels;
             deviceHeight = 240; // Resources.DisplayMetrics.HeightPixels;
 
@@ -250,9 +250,16 @@ namespace CameraApp
 
                     if (data.StartsWith("TEXT "))
                     {
+                        string dataParams = data.Substring(5);
+                        string[] dataArray = dataParams.Split(',');
+
+                        int x = Convert.ToInt32(dataArray[0]) * scaleX;
+                        int y = Convert.ToInt32(dataArray[1]) * scaleY;
+
                         RunOnUiThread(() =>
                         {
-                            customImageView.DrawText(data.Substring(5), 0, 200, 48, Color.Cyan);
+                            customImageView.DrawText(dataArray[2], x, y, 48, Color.Cyan);
+                            //customImageView.DrawText(data.Substring(5), 0, 200, 48, Color.Cyan);
                         });
 
                     }
@@ -262,7 +269,7 @@ namespace CameraApp
                         string dataParams = data.Substring(7);
                         string[] dataArray = dataParams.Split(',');
 
-                        int x = Convert.ToInt32(dataArray[0]) * scaleY;
+                        int x = Convert.ToInt32(dataArray[0]) * scaleX;
                         int y = Convert.ToInt32(dataArray[1]) * scaleY;
 
                         RunOnUiThread(() =>

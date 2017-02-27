@@ -43,6 +43,8 @@
             this.button5 = new System.Windows.Forms.Button();
             this.txtBarcodeValue = new System.Windows.Forms.TextBox();
             this.txtBarcodeData = new System.Windows.Forms.TextBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.checkBox2 = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOverlay)).BeginInit();
@@ -186,11 +188,34 @@
             this.txtBarcodeData.Size = new System.Drawing.Size(320, 157);
             this.txtBarcodeData.TabIndex = 13;
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(725, 535);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(112, 17);
+            this.checkBox1.TabIndex = 14;
+            this.checkBox1.Text = "Find red ball demo";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 
+            // checkBox2
+            // 
+            this.checkBox2.AutoSize = true;
+            this.checkBox2.Location = new System.Drawing.Point(843, 536);
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Size = new System.Drawing.Size(128, 17);
+            this.checkBox2.TabIndex = 15;
+            this.checkBox2.Text = "Match template demo";
+            this.checkBox2.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1057, 573);
+            this.Controls.Add(this.checkBox2);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.txtBarcodeData);
             this.Controls.Add(this.txtBarcodeValue);
             this.Controls.Add(this.button5);
@@ -234,6 +259,8 @@
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.TextBox txtBarcodeValue;
         private System.Windows.Forms.TextBox txtBarcodeData;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox checkBox2;
     }
 }
 

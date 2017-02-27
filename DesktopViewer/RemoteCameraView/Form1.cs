@@ -16,6 +16,10 @@ using SuperSocket.SocketBase.Protocol;
 using SuperSocket.SocketBase.Config;
 using System.Net;
 using Newtonsoft.Json;
+using Emgu.CV;
+using Emgu.CV.Structure;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Util;
 
 namespace RemoteCameraView
 {
@@ -27,6 +31,8 @@ namespace RemoteCameraView
         private Queue<byte[]> imageDataQueue = new Queue<byte[]>();
         private AppServer server = new AppServer();
         AppSession sendSession = null;
+
+        Image<Bgr, Byte> imgOriginal;
 
         public Form1()
         {
@@ -121,8 +127,142 @@ namespace RemoteCameraView
                 byte[] arr = imageDataQueue.Dequeue();
                 Image i = byteArrayToImage(arr);
 
-                pictureBox1.Image = i;
+                imgOriginal = new Image<Bgr, Byte>(new Bitmap(i));
+
+                if (checkBox1.Checked)
+                    imgOriginal = FindCircles(imgOriginal);
+
+                if (checkBox2.Checked)
+                    imgOriginal = MatchTemplate(imgOriginal);
+
+                //imgOriginal = CascadeClassify(imgOriginal);
+
+                pictureBox1.Image = imgOriginal.ToBitmap();
+                //pictureBox1.Image = i;
             }
+        }
+
+        private Image<Bgr, byte> MatchTemplate(Image<Bgr, byte> image)
+        {
+            Image<Bgr, byte> template = new Image<Bgr, byte>("I:\\template.png");
+
+            try
+            {
+                using (Image<Gray, float> result = image.MatchTemplate(template, TemplateMatchingType.CcoeffNormed))
+                {
+                    double[] minValues, maxValues;
+                    Point[] minLocations, maxLocations;
+                    result.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
+
+                    // Somewhere between 0.75 and 0.95 would be good.
+                    if (maxValues[0] > 0.7)
+                    {
+                        // This is a match. Do something with it, for example draw a rectangle around it.
+                        Rectangle match = new Rectangle(maxLocations[0], template.Size);
+                        image.Draw(match, new Bgr(Color.Red), 3);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return image;
+
+        }
+
+        private Image<Bgr, byte> DrawContours(Image<Gray, byte> image, VectorOfVectorOfPoint contours, Bgr color, int thickness, int maxLevel)
+        {
+            Image<Bgr, Byte> resultImage = new Image<Bgr, byte>(image.Size);
+            resultImage = image.Convert<Bgr, Byte>();
+            CvInvoke.DrawContours(resultImage, 
+                contours, 
+                1,
+                color.MCvScalar,
+                thickness,
+                LineType.AntiAlias,
+                null,
+                maxLevel,
+                new Point(0, 0));
+
+            return resultImage;
+        }
+
+        private Image<Bgr, byte> FindCircles(Image<Bgr, byte> original)
+        {
+            //Capture capWebcam = new Capture();
+            //imgOriginal = capWebcam.QueryFrame();
+
+            Image<Gray, byte> mask = original.InRange(new Bgr(0, 0, 175), new Bgr(50, 50, 255));
+            //mask = imgOriginal.InRange(new Bgr(9, 86, 6), new Bgr(70, 255, 255));
+            //mask = mask.Canny(149, 149);
+            //imgOriginal = imgOriginal.Resize(160, 120, Inter.Area);
+
+            mask = mask.SmoothGaussian(9);
+            mask = mask.Erode(2).Dilate(2);
+
+            CircleF[] circles = mask.HoughCircles(new Gray(100), new Gray(50), 2, mask.Height / 4, 10, 400)[0];
+
+            foreach (CircleF circle in circles)
+            {
+                if (txtBarcodeData.Text != "") txtBarcodeData.AppendText(Environment.NewLine);
+
+                txtBarcodeData.AppendText(
+                    "ball position = x" + circle.Center.X.ToString().PadLeft(4) +
+                    ", y =" + circle.Center.Y.ToString().PadLeft(4) +
+                    ", radius =" + circle.Radius.ToString("###.000").PadLeft(7));
+
+                txtBarcodeData.ScrollToCaret();
+
+                int x = (int)circle.Center.X;
+                int y = (int)circle.Center.Y;
+
+                // Draws a small green circle at the center point
+                CvInvoke.Circle(original, new Point(x, y), 3, new MCvScalar(0, 255, 0), 1, LineType.EightConnected, 0);
+
+                // Draw a bounding circle around the object
+                original.Draw(circle, new Bgr(Color.Green), 2);
+
+                // Draw text on the object
+                original.Draw("Ball", new Point(x, y), FontFace.HersheyPlain, 1, new Bgr(Color.Red), 1, LineType.AntiAlias, false);
+
+                sendSession.Send("MOUSE " + x.ToString() + "," + y.ToString());
+                //sendSession.Send("LINE " + x.ToString() + "," + y.ToString()+ "," + x.ToString() + "," + y.ToString());
+            }
+
+            pictureBox2.Image = mask.ToBitmap();
+
+            return original;
+
+        }
+
+        private Image<Bgr, byte> CascadeClassify(Image<Bgr, byte> image)
+        {
+            try
+            {
+                CascadeClassifier classifier = new CascadeClassifier("I:\\cascade.xml");
+
+                var grayframe = image.Convert<Gray, byte>();
+
+                var objs = classifier.DetectMultiScale(grayframe, 1.3, 5); //the actual detection happens here
+                foreach (var obj in objs)
+                {
+                    image.Draw(obj, new Bgr(Color.BurlyWood), 3);
+
+                }
+
+                pictureBox2.Image = grayframe.ToBitmap();
+
+                return image;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return image;
         }
 
         public Image byteArrayToImage(byte[] byteArrayIn)
@@ -174,7 +314,7 @@ namespace RemoteCameraView
 
         private void button3_Click(object sender, EventArgs e)
         {
-            sendSession.Send("TEXT " + txtText.Text);
+            sendSession.Send("TEXT 0,200," + txtText.Text);
             txtText.Text = "";
         }
 
@@ -294,6 +434,11 @@ namespace RemoteCameraView
                 }
                 throw;
             }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
