@@ -45,6 +45,8 @@
             this.txtBarcodeData = new System.Windows.Forms.TextBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
+            this.checkBox3 = new System.Windows.Forms.CheckBox();
+            this.lblSessionID = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOverlay)).BeginInit();
@@ -157,9 +159,7 @@
             this.pictureBoxOverlay.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBoxOverlay.TabIndex = 10;
             this.pictureBoxOverlay.TabStop = false;
-            this.pictureBoxOverlay.Click += new System.EventHandler(this.pictureBoxOverlay_Click);
             this.pictureBoxOverlay.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseDown);
-            this.pictureBoxOverlay.MouseEnter += new System.EventHandler(this.pictureBoxOverlay_MouseEnter);
             this.pictureBoxOverlay.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseMove);
             this.pictureBoxOverlay.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxOverlay_MouseUp);
             // 
@@ -197,23 +197,43 @@
             this.checkBox1.TabIndex = 14;
             this.checkBox1.Text = "Find red ball demo";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // checkBox2
             // 
             this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(843, 536);
+            this.checkBox2.Location = new System.Drawing.Point(911, 534);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(128, 17);
             this.checkBox2.TabIndex = 15;
             this.checkBox2.Text = "Match template demo";
             this.checkBox2.UseVisualStyleBackColor = true;
             // 
+            // checkBox3
+            // 
+            this.checkBox3.AutoSize = true;
+            this.checkBox3.Location = new System.Drawing.Point(725, 559);
+            this.checkBox3.Name = "checkBox3";
+            this.checkBox3.Size = new System.Drawing.Size(139, 17);
+            this.checkBox3.TabIndex = 16;
+            this.checkBox3.Text = "Cascade Classify (Face)";
+            this.checkBox3.UseVisualStyleBackColor = true;
+            // 
+            // lblSessionID
+            // 
+            this.lblSessionID.AutoSize = true;
+            this.lblSessionID.Location = new System.Drawing.Point(273, 19);
+            this.lblSessionID.Name = "lblSessionID";
+            this.lblSessionID.Size = new System.Drawing.Size(58, 13);
+            this.lblSessionID.TabIndex = 17;
+            this.lblSessionID.Text = "Session ID";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1057, 573);
+            this.ClientSize = new System.Drawing.Size(1057, 584);
+            this.Controls.Add(this.lblSessionID);
+            this.Controls.Add(this.checkBox3);
             this.Controls.Add(this.checkBox2);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.txtBarcodeData);
@@ -261,6 +281,8 @@
         private System.Windows.Forms.TextBox txtBarcodeData;
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.Label lblSessionID;
     }
 }
 

@@ -20,19 +20,22 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
+using System.Threading;
 
 namespace RemoteCameraView
 {
 
     public partial class Form1 : Form
     {
-
-        private Timer timer = new Timer();
         private Queue<byte[]> imageDataQueue = new Queue<byte[]>();
         private AppServer server = new AppServer();
-        AppSession sendSession = null;
-
-        Image<Bgr, Byte> imgOriginal;
+        private AppSession sendSession = null;
+        private string dataBody = "";
+        private bool isRunning = false;
+        private Thread imageProcessingThread;
+        private CascadeClassifier classifier = null;
+        private Image<Bgr, Byte> imgOriginal;
+        private Point? _Previous = null;
 
         public Form1()
         {
@@ -46,23 +49,15 @@ namespace RemoteCameraView
             server.NewSessionConnected += new SessionHandler<AppSession>(appServer_NewSessionConnected);
             server.NewRequestReceived += new RequestHandler<AppSession, StringRequestInfo>(appServer_NewRequestReceived);
 
-            timer.Interval = 10;
-            timer.Tick += T_Tick;
-
-            // Transparent background...  
+            // Set up transparent overlay for drawing 
             pictureBoxOverlay.BackColor = Color.Transparent;
-
-            // Change parent for overlay PictureBox...
             pictureBoxOverlay.Parent = pictureBox1;
-
-            // Change overlay PictureBox position in new parent...
             pictureBoxOverlay.Location = new Point(0, 0);
 
             ClearPictureBox(pictureBoxOverlay);
+
+            classifier = new CascadeClassifier("haarcascade_frontalface_default.xml");
         }
-
-
-        string dataBody = "";
 
         private void appServer_NewRequestReceived(AppSession session, StringRequestInfo requestInfo)
         {
@@ -105,6 +100,7 @@ namespace RemoteCameraView
 
         private void appServer_NewSessionConnected(AppSession session)
         {
+            
             session.SocketSession.Client.NoDelay = true;
             session.SocketSession.Client.ReceiveTimeout = 60000;
             session.SocketSession.Client.ReceiveBufferSize = 100000;
@@ -112,7 +108,7 @@ namespace RemoteCameraView
 
             IPEndPoint remoteIpEndPoint = session.SocketSession.RemoteEndPoint;
             this.Invoke((MethodInvoker)delegate {
-                
+                lblSessionID.Text = session.SessionID;
                 label1.Text = "Remote IP: " + remoteIpEndPoint.Address;
             });
             
@@ -120,26 +116,54 @@ namespace RemoteCameraView
             sendSession = session;
         }
 
-        private void T_Tick(object sender, EventArgs e)
+        private void ImageQueueProcessingWork()
         {
-            if (imageDataQueue.Count > 0)
+            while (isRunning)
             {
-                byte[] arr = imageDataQueue.Dequeue();
-                Image i = byteArrayToImage(arr);
+                if (imageDataQueue.Count > 0)
+                {
+                    byte[] arr = imageDataQueue.Dequeue();
+                    Image i = byteArrayToImage(arr);
 
-                imgOriginal = new Image<Bgr, Byte>(new Bitmap(i));
+                    imgOriginal = new Image<Bgr, Byte>(new Bitmap(i));
 
-                if (checkBox1.Checked)
-                    imgOriginal = FindCircles(imgOriginal);
+                    if (checkBox1.Checked)
+                        imgOriginal = FindCircles(imgOriginal);
 
-                if (checkBox2.Checked)
-                    imgOriginal = MatchTemplate(imgOriginal);
+                    if (checkBox2.Checked)
+                        imgOriginal = MatchTemplate(imgOriginal);
 
-                //imgOriginal = CascadeClassify(imgOriginal);
+                    if (checkBox3.Checked)
+                        imgOriginal = CascadeClassify(imgOriginal);
 
-                pictureBox1.Image = imgOriginal.ToBitmap();
-                //pictureBox1.Image = i;
+                    pictureBox1.Image = imgOriginal.ToBitmap();
+                    //pictureBox1.Image = i;
+                }
             }
+        }
+
+        private Image<Bgr, Byte> CascadeClassify(Image<Bgr, Byte> image)
+        {
+            try
+            {
+                var grayframe = image.Convert<Gray, byte>();
+
+                var objs = classifier.DetectMultiScale(grayframe, 1.3, 5); //the actual detection happens here
+                foreach (var obj in objs)
+                {
+                    image.Draw(obj, new Bgr(Color.BurlyWood), 3);
+                }
+
+                this.Invoke((MethodInvoker)delegate {
+                    pictureBox2.Image = grayframe.ToBitmap();
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return image;
         }
 
         private Image<Bgr, byte> MatchTemplate(Image<Bgr, byte> image)
@@ -195,7 +219,7 @@ namespace RemoteCameraView
             //Capture capWebcam = new Capture();
             //imgOriginal = capWebcam.QueryFrame();
 
-            Image<Gray, byte> mask = original.InRange(new Bgr(0, 0, 175), new Bgr(50, 50, 255));
+            Image<Gray, byte> mask = original.InRange(new Bgr(0, 0, 109), new Bgr(50, 50, 255));
             //mask = imgOriginal.InRange(new Bgr(9, 86, 6), new Bgr(70, 255, 255));
             //mask = mask.Canny(149, 149);
             //imgOriginal = imgOriginal.Resize(160, 120, Inter.Area);
@@ -207,14 +231,17 @@ namespace RemoteCameraView
 
             foreach (CircleF circle in circles)
             {
-                if (txtBarcodeData.Text != "") txtBarcodeData.AppendText(Environment.NewLine);
+                this.Invoke((MethodInvoker)delegate {
 
-                txtBarcodeData.AppendText(
+                    if (txtBarcodeData.Text != "") txtBarcodeData.AppendText(Environment.NewLine);
+
+                    txtBarcodeData.AppendText(
                     "ball position = x" + circle.Center.X.ToString().PadLeft(4) +
                     ", y =" + circle.Center.Y.ToString().PadLeft(4) +
                     ", radius =" + circle.Radius.ToString("###.000").PadLeft(7));
 
-                txtBarcodeData.ScrollToCaret();
+                    txtBarcodeData.ScrollToCaret();
+                });
 
                 int x = (int)circle.Center.X;
                 int y = (int)circle.Center.Y;
@@ -236,33 +263,6 @@ namespace RemoteCameraView
 
             return original;
 
-        }
-
-        private Image<Bgr, byte> CascadeClassify(Image<Bgr, byte> image)
-        {
-            try
-            {
-                CascadeClassifier classifier = new CascadeClassifier("I:\\cascade.xml");
-
-                var grayframe = image.Convert<Gray, byte>();
-
-                var objs = classifier.DetectMultiScale(grayframe, 1.3, 5); //the actual detection happens here
-                foreach (var obj in objs)
-                {
-                    image.Draw(obj, new Bgr(Color.BurlyWood), 3);
-
-                }
-
-                pictureBox2.Image = grayframe.ToBitmap();
-
-                return image;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return image;
         }
 
         public Image byteArrayToImage(byte[] byteArrayIn)
@@ -291,23 +291,25 @@ namespace RemoteCameraView
             if (button2.Text == "Start")
             {
                 server.Start();
-                timer.Start();
+                isRunning = true;
+                imageProcessingThread = new Thread(ImageQueueProcessingWork);
+                imageProcessingThread.Start();
 
                 button2.Text = "Stop";
                 ClearPictureBox(pictureBoxOverlay);
-
-
+                imageDataQueue.Clear();
             }
             else
             {
                 sendSession.Send("TERMINATE");
 
                 server.Stop();
-                timer.Stop();
+                isRunning = false;
 
                 button2.Text = "Start";
                 pictureBox1.Image = null;
                 ClearPictureBox(pictureBoxOverlay);
+                imageDataQueue.Clear();
             }
 
         }
@@ -326,17 +328,10 @@ namespace RemoteCameraView
                 sendSession.Send("NOFLASH");
         }
 
-        private Point? _Previous = null;
-
         private void button4_Click(object sender, EventArgs e)
         {
             sendSession.Send("CLEAR");
             ClearPictureBox(pictureBoxOverlay);
-        }
-
-        private void pictureBoxOverlay_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void pictureBoxOverlay_MouseDown(object sender, MouseEventArgs e)
@@ -382,11 +377,6 @@ namespace RemoteCameraView
         private void pictureBoxOverlay_MouseUp(object sender, MouseEventArgs e)
         {
             _Previous = null;
-        }
-
-        private void pictureBoxOverlay_MouseEnter(object sender, EventArgs e)
-        {
-            
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -436,9 +426,6 @@ namespace RemoteCameraView
             }
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
 
-        }
     }
 }
