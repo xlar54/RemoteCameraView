@@ -47,6 +47,7 @@
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.lblSessionID = new System.Windows.Forms.Label();
+            this.checkBox4 = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOverlay)).BeginInit();
@@ -227,11 +228,22 @@
             this.lblSessionID.TabIndex = 17;
             this.lblSessionID.Text = "Session ID";
             // 
+            // checkBox4
+            // 
+            this.checkBox4.AutoSize = true;
+            this.checkBox4.Location = new System.Drawing.Point(911, 559);
+            this.checkBox4.Name = "checkBox4";
+            this.checkBox4.Size = new System.Drawing.Size(147, 17);
+            this.checkBox4.TabIndex = 18;
+            this.checkBox4.Text = "Cascade Classify (Mouse)";
+            this.checkBox4.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1057, 584);
+            this.Controls.Add(this.checkBox4);
             this.Controls.Add(this.lblSessionID);
             this.Controls.Add(this.checkBox3);
             this.Controls.Add(this.checkBox2);
@@ -283,6 +295,7 @@
         private System.Windows.Forms.CheckBox checkBox2;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Label lblSessionID;
+        private System.Windows.Forms.CheckBox checkBox4;
     }
 }
 

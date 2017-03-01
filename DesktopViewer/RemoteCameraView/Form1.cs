@@ -33,7 +33,8 @@ namespace RemoteCameraView
         private string dataBody = "";
         private bool isRunning = false;
         private Thread imageProcessingThread;
-        private CascadeClassifier classifier = null;
+        private CascadeClassifier faceClassifier = null;
+        private CascadeClassifier mouseClassifier = null;
         private Image<Bgr, Byte> imgOriginal;
         private Point? _Previous = null;
 
@@ -56,7 +57,8 @@ namespace RemoteCameraView
 
             ClearPictureBox(pictureBoxOverlay);
 
-            classifier = new CascadeClassifier("haarcascade_frontalface_default.xml");
+            faceClassifier = new CascadeClassifier("face_cascade.xml");
+            mouseClassifier = new CascadeClassifier("mouse_cascade.xml");
         }
 
         private void appServer_NewRequestReceived(AppSession session, StringRequestInfo requestInfo)
@@ -124,7 +126,7 @@ namespace RemoteCameraView
                 {
                     byte[] arr = imageDataQueue.Dequeue();
                     Image i = byteArrayToImage(arr);
-
+                    
                     imgOriginal = new Image<Bgr, Byte>(new Bitmap(i));
 
                     if (checkBox1.Checked)
@@ -134,7 +136,10 @@ namespace RemoteCameraView
                         imgOriginal = MatchTemplate(imgOriginal);
 
                     if (checkBox3.Checked)
-                        imgOriginal = CascadeClassify(imgOriginal);
+                        imgOriginal = CascadeClassify(faceClassifier, imgOriginal);
+
+                    if (checkBox4.Checked)
+                        imgOriginal = CascadeClassify(mouseClassifier, imgOriginal);
 
                     pictureBox1.Image = imgOriginal.ToBitmap();
                     //pictureBox1.Image = i;
@@ -142,13 +147,14 @@ namespace RemoteCameraView
             }
         }
 
-        private Image<Bgr, Byte> CascadeClassify(Image<Bgr, Byte> image)
+        private Image<Bgr, Byte> CascadeClassify(CascadeClassifier classifier, Image<Bgr, Byte> image)
         {
             try
             {
                 var grayframe = image.Convert<Gray, byte>();
 
                 var objs = classifier.DetectMultiScale(grayframe, 1.3, 5); //the actual detection happens here
+
                 foreach (var obj in objs)
                 {
                     image.Draw(obj, new Bgr(Color.BurlyWood), 3);
